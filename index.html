@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Para ti</title>
+<link rel="shortcut icon" href="img/favicon2.png" type="image/x-icon">
+<style>
+  :root{
+    --night:#211228;
+    --night2:#2c1836;
+    --blush:#f6e2e6;
+    --rose:#d98fa0;
+    --wine:#7a2d43;
+    --gold:#d8ad5f;
+    --cream:#fbf4ee;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  body{
+    margin:0;
+    background:radial-gradient(ellipse at 50% -10%, var(--night2), var(--night) 60%);
+    color:var(--cream);
+    font-family:'Cormorant Garamond', Georgia, serif;
+    overflow-x:hidden;
+  }
+  @font-face{
+    font-family:'Cormorant Garamond';
+    src:local('Cormorant Garamond');
+  }
+  h1,h2{font-family:'Cormorant Garamond', Georgia, serif; font-weight:600; margin:0;}
+  .body-font{font-family:'Inter', -apple-system, sans-serif;}
+  #stars{position:fixed; inset:0; pointer-events:none; z-index:0;}
+  .star{position:absolute; width:2px; height:2px; background:var(--blush); border-radius:50%; opacity:.5; animation:twinkle 4s ease-in-out infinite;}
+  @keyframes twinkle{0%,100%{opacity:.15;} 50%{opacity:.75;}}
+
+  section{position:relative; z-index:1; padding:60px 20px; max-width:960px; margin:0 auto;}
+
+  /* HERO */
+  .hero{min-height:100svh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:34px; padding-top:calc(60px + env(safe-area-inset-top,0px));}
+  .hero h1{font-size:clamp(2.4rem, 8vw, 4.2rem); letter-spacing:.5px; color:var(--cream);}
+  .hero p.sub{font-family:'Inter',sans-serif; color:var(--rose); letter-spacing:.08em; font-size:.85rem; margin-top:10px;}
+
+  .frame{
+    position:relative;
+    width:min(78vw, 300px);
+    height:min(78vw, 300px);
+    border-radius:50%;
+    padding:8px;
+    background:conic-gradient(from 0deg, var(--gold), var(--rose), var(--wine), var(--gold));
+  }
+  .frame-inner{
+    width:100%; height:100%; border-radius:50%; overflow:hidden;
+    background:var(--night2);
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+  }
+  .frame-inner img{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+    opacity:0; transition:opacity 1s ease;
+  }
+  .frame-inner img.show{opacity:1;}
+  .placeholder{font-family:'Inter',sans-serif; color:var(--rose); font-size:.9rem; padding:20px; text-align:center; opacity:.8;}
+
+  .upload-btn{
+    margin-top:6px;
+    font-family:'Inter',sans-serif;
+    font-size:.8rem;
+    color:var(--night);
+    background:var(--gold);
+    border:none;
+    padding:10px 22px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:transform .2s ease, filter .2s ease;
+  }
+  .upload-btn:hover{filter:brightness(1.08); transform:translateY(-1px);}
+  .upload-btn:focus-visible{outline:2px solid var(--cream); outline-offset:3px;}
+  #fileInput{display:none;}
+  .hint{font-family:'Inter',sans-serif; font-size:.72rem; color:rgba(246,226,230,.55); max-width:280px;}
+
+  /* CARDS SECTION */
+  .cards-intro{text-align:center; margin-bottom:40px;}
+  .cards-intro h2{font-size:clamp(1.8rem,5vw,2.6rem); color:var(--cream);}
+  .cards-intro p{font-family:'Inter',sans-serif; color:var(--rose); font-size:.9rem; margin-top:12px;}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(76px,1fr));
+    gap:12px;
+  }
+  .card{
+    aspect-ratio:3/4;
+    perspective:800px;
+    cursor:pointer;
+  }
+  .card-inner{
+    position:relative; width:100%; height:100%;
+    transition:transform .6s cubic-bezier(.2,.9,.3,1);
+    transform-style:preserve-3d;
+  }
+  .card.flipped .card-inner{transform:rotateY(180deg);}
+  .face{
+    position:absolute; inset:0; backface-visibility:hidden;
+    border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    text-align:center;
+    padding:8px;
+  }
+  .front{
+    background:linear-gradient(160deg, var(--wine), var(--night2));
+    border:1px solid rgba(216,173,95,.35);
+    font-family:'Inter',sans-serif;
+    color:var(--gold);
+    font-size:.95rem;
+    letter-spacing:.03em;
+  }
+  .back{
+    background:var(--blush);
+    color:var(--wine);
+    transform:rotateY(180deg);
+    font-size:.72rem;
+    line-height:1.3;
+    font-family:'Inter',sans-serif;
+    font-weight:500;
+  }
+  .card:focus-visible .card-inner{outline:2px solid var(--gold); outline-offset:2px;}
+  .card.locked{cursor:not-allowed;}
+  .card.locked .front{color:rgba(216,173,95,.45); border-color:rgba(216,173,95,.15);}
+  .lock-icon{font-size:1.1rem; margin-bottom:4px; opacity:.7;}
+  .lock-date{font-size:.6rem; letter-spacing:.02em; opacity:.75;}
+
+  .settings-row{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    margin:-12px auto 34px; font-family:'Inter',sans-serif; font-size:.78rem;
+    color:rgba(246,226,230,.65);
+  }
+  .settings-row input[type=date]{
+    font-family:'Inter',sans-serif; font-size:.78rem;
+    background:var(--night2); color:var(--cream);
+    border:1px solid rgba(216,173,95,.35); border-radius:6px; padding:5px 8px;
+  }
+
+  footer{text-align:center; padding:50px 20px 70px; font-family:'Inter',sans-serif; color:rgba(246,226,230,.4); font-size:.75rem;}
+
+  @media (prefers-reduced-motion:reduce){
+    .star{animation:none;}
+    .card-inner{transition:none;}
+    .frame-inner img{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<div id="stars"></div>
+
+<section class="hero">
+  <p class="sub">PARA VOS</p>
+  <h1>Te amo</h1>
+  <div class="frame">
+    <div class="frame-inner" id="frameInner">
+      <div class="placeholder" id="placeholder">Subí nuestras fotos favoritas<br>y las voy a ir mostrando, una por segundo.</div>
+    </div>
+  </div>
+  <button class="upload-btn" id="uploadBtn">Subir fotos</button>
+  <input type="file" id="fileInput" accept="image/*" multiple>
+  <p class="hint">Las fotos quedan guardadas solo en este navegador. Podés volver a entrar y ya van a estar.</p>
+</section>
+
+<section>
+  <div class="cards-intro">
+    <h2>100 razones</h2>
+    <p>Tocá cada carta. Una por una, todas son ciertas.</p>
+  </div>
+  <div class="settings-row">
+    <label for="startDate">Empieza el</label>
+    <input type="date" id="startDate">
+  </div>
+  <div class="grid" id="grid"></div>
+</section>
+
+<footer>hecho con vos en mente</footer>
+
+<script>
+// ---------- estrellas de fondo ----------
+const starsWrap = document.getElementById('stars');
+for(let i=0;i<40;i++){
+  const s=document.createElement('div');
+  s.className='star';
+  s.style.left=Math.random()*100+'%';
+  s.style.top=Math.random()*100+'%';
+  s.style.animationDelay=(Math.random()*4)+'s';
+  starsWrap.appendChild(s);
+}
+
+// ---------- slideshow de fotos ----------
+const frameInner = document.getElementById('frameInner');
+const placeholder = document.getElementById('placeholder');
+const fileInput = document.getElementById('fileInput');
+const uploadBtn = document.getElementById('uploadBtn');
+let photos = [];
+let slideIndex = 0;
+let slideTimer = null;
+
+function resizeImage(dataUrl, maxSize){
+  return new Promise((resolve)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      let w = img.width, h = img.height;
+      if(w > h){ if(w > maxSize){ h = h*(maxSize/w); w = maxSize; } }
+      else { if(h > maxSize){ w = w*(maxSize/h); h = maxSize; } }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(canvas.toDataURL('image/jpeg', 0.75));
+    };
+    img.onerror = ()=>resolve(null);
+    img.src = dataUrl;
+  });
+}
+
+function renderPhotos(){
+  frameInner.querySelectorAll('img').forEach(el=>el.remove());
+  if(photos.length===0){
+    placeholder.style.display='flex';
+    return;
+  }
+  placeholder.style.display='none';
+  photos.forEach((src,i)=>{
+    const img=document.createElement('img');
+    img.src=src;
+    if(i===0) img.classList.add('show');
+    frameInner.appendChild(img);
+  });
+  slideIndex=0;
+  if(slideTimer) clearInterval(slideTimer);
+  if(photos.length>1){
+    slideTimer=setInterval(()=>{
+      const imgs=frameInner.querySelectorAll('img');
+      imgs[slideIndex].classList.remove('show');
+      slideIndex=(slideIndex+1)%imgs.length;
+      imgs[slideIndex].classList.add('show');
+    },1000);
+  }
+}
+
+async function handleFiles(fileList){
+  const readers = Array.from(fileList).map(file=>new Promise((resolve)=>{
+    const r=new FileReader();
+    r.onload=()=>resolve(r.result);
+    r.onerror=()=>resolve(null);
+    r.readAsDataURL(file);
+  }));
+  const rawResults = await Promise.all(readers);
+  const resized = await Promise.all(rawResults.filter(Boolean).map(d=>resizeImage(d,640)));
+  photos = resized.filter(Boolean);
+  renderPhotos();
+  try{
+    localStorage.setItem('paraTiFotos', JSON.stringify(photos));
+  }catch(e){
+    console.warn('No se pudieron guardar todas las fotos (espacio limitado).', e);
+  }
+}
+
+uploadBtn.addEventListener('click', ()=>fileInput.click());
+fileInput.addEventListener('change', (e)=>{
+  if(e.target.files && e.target.files.length){
+    handleFiles(e.target.files);
+  }
+});
+
+try{
+  const saved = localStorage.getItem('paraTiFotos');
+  if(saved){
+    photos = JSON.parse(saved);
+    renderPhotos();
+  }
+}catch(e){ /* sin fotos guardadas todavia */ }
+
+// ---------- 100 cartas ----------
+const mensajes = [
+"Te sigo amando como el primer dia.",
+
+"Sos mi anhelo de cada dia.",
+
+"Sos la mujer que siempre soñe.",
+
+"Con el paso del tiempo mi amor evoluciona con el tiempo",
+
+"Sos mi lugar seguro.",
+
+"Me hacés mejor persona, todos los días.",
+
+"Me encanta ver dormir.",
+
+"Tu abrazo y besos son mi regalos preferidos.",
+
+"Sos la persona con la que quiero envejecer.",
+
+"Me encanta tu forma de ser.",
+
+"Me encanta cuando te quedás dormida a mi lado.",
+
+"Quiero seguir descubriendo la vida junto a vos.",
+
+"Me enamoro de vos un poco más cada día.",
+
+"Tu paciencia conmigo no tiene precio.",
+
+"Me encantan cada besos que me das",
+
+"Sos mi persona favorita en todo el mundo.",
+
+"Me encanta la forma en que me mirás.",
+
+"No importa cuánto tiempo pase, siempre voy a tener ganas de abrazarte.",
+
+"Sos el hogar que elegí.",
+
+"Me encanta soñar con nuestro futuro.",
+
+"Me gusta saber que tengo a alguien como vos en mi vida",
+
+"Nunca me canso de escucharte.",
+
+"Me encanta cuando estamos juntos.",
+
+"Me gusta saber que puedo compartir todo con vos.",
+
+"Me encanta cada momento que puedo pasar a tu lado.",
+
+"Quiero seguir viviendo momentos que algún día vamos a recordar juntos.",
+
+"Me encanta pelear por nosotros, siempre vale la pena.",
+
+"Sos la mejor parte de mis días.",
+
+"Con vos aprendí lo que significa querer bien.",
+
+"Me encanta cuando me abrazás.",
+
+"Me gusta la tranquilidad que siento cuando estoy con vos.",
+
+"Me encanta que seas tan vos misma.",
+
+"Cada plan es mejor si estás vos.",
+
+"Me encanta cuando te reís y no podés parar.",
+
+"Me encanta la confianza que tenemos entre nosotros.",
+
+"Quiero estar para vos incluso en esos días en los que todo sale mal.",
+
+"Me encanta saber que somos nosotros contra lo que venga.",
+
+"Sos mi persona para las buenas y las malas.",
+
+"Me encanta cómo me hacés sentir.",
+
+"Me gusta poder ser yo mismo cuando estoy con vos.",
+
+"Me encanta cuando me contás cómo estuvo tu día.",
+
+"Me encanta descubrir cosas nuevas de vos todavía.",
+
+"Sos mi equipo, siempre.",
+
+"Quiero acompañarte en cada cosa que te propongas.",
+
+"Me encanta cuando hacemos cualquier cosa juntos.",
+
+"Me encanta las noche de pizzas y peliculas.",
+
+"Me gusta pensar en todas las cosas que todavía nos quedan por vivir.",
+
+"Cada 'te amo' que te digo lo siento entero.",
+
+"Sos la persona que elijo, una y otra vez.",
+
+"Me encanta imaginarnos dentro de muchos años.",
+
+"Sos mi mejor decisión.",
+
+"Gracias por ser exactamente quien sos, te amo.",
+
+"Me encanta la forma que me enseñas de amar a alguien.",
+
+"Sos mi persona favorita.",
+
+"Con vos aprendí a no tenerle miedo al futuro.",
+
+"Me vuelve loco cada cosas tuya.",
+
+"Me encanta saber que puedo contar con vos.",
+
+"Quiero seguir construyendo nuestra historia juntos.",
+
+"Me encanta cuando te preocupás por mí.",
+
+"Me gusta que conozcas mis partes buenas y también las no tan buenas.",
+
+"Sos la persona que mas amo en el mundo.",
+
+"Me encanta cada parte de vos.",
+
+"Tus besos me dan años de vida.",
+
+"Conocerte fue lindo, quedarme a tu lado fue la mejor decision.",
+
+"Me encanta aprender a quererte cada dia.",
+
+"Con vos entendí lo que es sentirse elegido de verdad.",
+
+"Me encanta tu manera de hacer que todo se sienta posible.",
+
+"Quiero estar a tu lado en cada etapa de nuestra vida.",
+
+"Sere siempre tuyo, hoy, mañana y siempre.",
+
+"Sueño cada momento que nuestro amor sea eterno.",
+
+"Sos la persona con la que quiero compartir cada logro.",
+
+"Sos el futuro que siempre anhelé.",
+
+"Me encanta tu manera de cuidarme.",
+
+"Me gusta sentir que también soy importante para vos.",
+
+"Quiero seguir haciendo recuerdos con vos, incluso de los días más simples.",
+
+"Me encanta cuando me abrazás después de un día difícil.",
+
+"Me gusta que podamos hablar de cualquier cosa sin miedo.",
+
+"Me encanta cuando te ponés feliz por algo que me pasa a mí.",
+
+"Quiero estar ahí para verte cumplir cada uno de tus sueños.",
+
+"No me imagino algo sin vos.",
+
+"Me encanta decirte te amo.",
+
+"Me encanta todo lo que todavía nos queda por conocer del otro.",
+
+"Sos la persona que quiero que me acompañe toda la vida.",
+
+"Me encanta tus beso.",
+
+"Me gusta saber que siempre estas para mi.",
+
+"Quiero seguir siendo parte de tus días.",
+
+"Me encanta cuando estamos juntos y el tiempo se pasa demasiado rápido.",
+
+"Me gusta pensar que todavía nos quedan muchísimas historias por vivir.",
+
+"Me encanta la forma en que me cuidás.",
+
+"Me encanta dormir con vos.",
+
+"Me encanta cuando hacemos planes.",
+
+"Me gusta que después de todo este tiempo todavía me pongas nervioso algunas veces.",
+
+"Me encanta tu manera de hacerme sentir tranquilo.",
+
+"Sos la persona que quiero tener al lado en toda mi vida.",
+
+"Con vos el amor se siente fácil.",
+
+"Me encanta saber que puedo mirar hacia adelante y verte en mis planes.",
+
+"Quiero seguir eligiéndote incluso en los días difíciles.",
+
+"Me encanta todo lo que somos cuando estamos juntos.",
+
+"Quiero que nunca nos falten motivos para abrazarnos.",
+
+"Me encanta tenerte para compartir tanto las cosas importantes como las pequeñas.",
+
+"Quiero seguir amándote de todas las formas que todavía no conozco.",
+
+"Te amo, hoy y todos los días que siguen."
+
+];
+
+const grid = document.getElementById('grid');
+const startInput = document.getElementById('startDate');
+
+function getStartDate(){
+  let s = localStorage.getItem('paraTiStart');
+  if(!s){
+    s = new Date().toISOString().slice(0,10);
+    try{ localStorage.setItem('paraTiStart', s); }catch(e){}
+  }
+  return s;
+}
+
+function unlockDateFor(startStr, i){
+  const d = new Date(startStr+'T00:00:00');
+  d.setDate(d.getDate()+i);
+  return d;
+}
+
+function formatDate(d){
+  return d.toLocaleDateString('es-AR', {day:'numeric', month:'short'});
+}
+
+function renderGrid(){
+  const startStr = startInput.value || getStartDate();
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  grid.innerHTML = '';
+  mensajes.forEach((msg,i)=>{
+    const unlockDate = unlockDateFor(startStr, i);
+    const unlocked = unlockDate <= today;
+    const card=document.createElement('div');
+    card.className = 'card' + (unlocked ? '' : ' locked');
+    card.tabIndex = 0;
+    card.setAttribute('role','button');
+    card.setAttribute('aria-label', unlocked ? 'Carta '+(i+1) : 'Carta '+(i+1)+', se desbloquea el '+formatDate(unlockDate));
+    const front = unlocked
+      ? `${i+1}`
+      : `<span class="lock-icon">🔒</span><span class="lock-date">${formatDate(unlockDate)}</span>`;
+    card.innerHTML = `
+      <div class="card-inner">
+        <div class="face front">${front}</div>
+        <div class="face back">${msg}</div>
+      </div>`;
+    if(unlocked){
+      const toggle=()=>card.classList.toggle('flipped');
+      card.addEventListener('click', toggle);
+      card.addEventListener('keydown', (e)=>{
+        if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(); }
+      });
+    }
+    grid.appendChild(card);
+  });
+}
+
+startInput.value = getStartDate();
+startInput.addEventListener('change', ()=>{
+  try{ localStorage.setItem('paraTiStart', startInput.value); }catch(e){}
+  renderGrid();
+});
+renderGrid();
+</script>
+</body>
+</html>
